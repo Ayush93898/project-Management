@@ -1,0 +1,17 @@
+{
+  "name": "projectmanagement",
+  "version": "1.0.0",
+  "description": "a project management app",
+  "main": "index.js",
+  "type":"module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "backend",
+    "API",
+    "creation"
+  ],
+  "author": "Ayush Kumar",
+  "license": "ISC"
+}
