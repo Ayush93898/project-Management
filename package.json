@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "a project management app",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
@@ -13,5 +13,8 @@
     "creation"
   ],
   "author": "Ayush Kumar",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
 }
