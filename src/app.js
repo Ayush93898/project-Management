@@ -26,6 +26,13 @@ app.use(
   }),
 );
 
+// import the rotes
+
+// healthCheck route
+import healthCheckRouter from "./routes/healthCheck.route.js";
+// /api/v1/healthcheck is home route 
+app.use("/api/v1/healthcheck", healthCheckRouter);
+
 app.get("/", (req, res) => {
   res.send("Welcome to Project Management App!");
 });
