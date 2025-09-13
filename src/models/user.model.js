@@ -121,7 +121,7 @@ userSchema.methods.generateRefreshToken = function () {
 userSchema.methods.generateTemporaryToken = function () {
   const unHashedToken = crypto.randomBytes(20).toString("hex");
   const HashedToken = crypto
-    .createHash("sha256")
+    .createHash("sha256") // that is nothing but an algo
     .update(unHashedToken)
     .digest("hex");
 
