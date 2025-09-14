@@ -5,9 +5,12 @@
 
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 // express server
 const app = express();
+app.use(cookieParser());
+
 
 // basic configuration
 app.use(express.json({ limit: "16kb" })); // handles API JSON data.
@@ -30,8 +33,11 @@ app.use(
 
 // healthCheck route
 import healthCheckRouter from "./routes/healthCheck.route.js";
-// /api/v1/healthcheck is home route 
+import authRouter from "./routes/auth.routes.js";
+
+// /api/v1/healthcheck is home route
 app.use("/api/v1/healthcheck", healthCheckRouter);
+app.use("/api/v1/auth", authRouter); // /api/v1/auth??? check PRD
 
 app.get("/", (req, res) => {
   res.send("Welcome to Project Management App!");

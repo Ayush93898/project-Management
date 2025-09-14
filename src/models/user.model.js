@@ -39,7 +39,7 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, "Password is required bro"],
-      select: false, // Every query on User will NOT include the password unless you explicitly ask.
+      
     },
     isEmailVerified: {
       type: Boolean,
@@ -77,7 +77,7 @@ userSchema.pre("save", async function (next) {
 });
 
 // lets understand few things
-// 1- save is mongoose event name like something.same
+// 1- save is mongoose event name like something.save
 // 2- so when save anything this hook trigger and it re-hash the password, so this.isModified("fieldName") inside hooks → it checks whether a field has been newly set or changed.
 
 // method - to comapre jo pass maine daala hai wo shi h ya nhi
@@ -115,8 +115,9 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-// case 1 - without the data (using crypto module of node js)
+// case 2 - without the data (using crypto module of node js)
 // are temp tokens use for verifying the user,pass reset
+// temporary token
 
 userSchema.methods.generateTemporaryToken = function () {
   const unHashedToken = crypto.randomBytes(20).toString("hex");
