@@ -3,6 +3,7 @@ import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { ApiError } from "../utils/api-errors.js";
+import crypto from "crypto";
 import {
   emailVerificationMailGenContent,
   forgotPasswordMailGenContent,
@@ -29,11 +30,13 @@ const generateAccessAndRefreshToken = async (userId) => {
   }
 };
 
+// controllers
+// register a user
 const registerUser = asyncHandler(async (req, res) => {
   // we get the data from the body
-  const { email, username, password, role } = req.body; // form ka data
+  const { email, username, password, role } = req.body; // form ka data (from postman -- testing purpose)
 
-  // validation - usko hum alag se likhege
+  // validation - usko hum alag se likhege (validators - index.js)
 
   // check if user already exist in the db or not
   const existedUser = await User.findOne({
@@ -56,11 +59,11 @@ const registerUser = asyncHandler(async (req, res) => {
   // now we generate the temp tokens, as we know that it use for the purpose like user verif..
 
   // so all the func we write in the User model wo user ke pass hai jo abhi humne upar banaya hai
-  const { unHashedToken, HashedToken, tokenExpiry } =
+  const { unHashedToken, hashedToken, tokenExpiry } =
     user.generateTemporaryToken();
 
   // added them in db
-  user.emailVerificationToken = HashedToken;
+  user.emailVerificationToken = hashedToken;
   user.emailVerificationTokenExpiry = tokenExpiry;
 
   //save
@@ -94,38 +97,43 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
+
 // login controller
 const login = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
-  if (!username || !email) {
-    throw new ApiError(404, "Username or email is required");
+
+  if (!username && !email) {
+    throw new ApiError(400, "Username or email is required");
+  }
+  if (!password) {
+    throw new ApiError(400, "Password is required");
   }
 
-  // finding the user on the basic of email
-  const user = await User.findOne({ email });
+  // Find user by email or username
+  const query = email ? { email } : { username };
+  const user = await User.findOne(query);
   if (!user) {
     throw new ApiError(400, "User does not exist");
   }
 
-  // checking password
+  // Check password
   const isPasswordCorrect = await user.isPasswordCorrect(password);
   if (!isPasswordCorrect) {
-    throw new ApiError(400, "Invalid credentails");
+    throw new ApiError(400, "Invalid credentials");
   }
 
-  // if password correct then generate the tokens
-  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-    user._id,
+  // Generate tokens
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+
+  // Remove sensitive data
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken -emailVerificationToken -emailVerificationTokenExpiry"
   );
 
-  // send token/data in cookies
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken -emailVerificationToken -emailVerificationTokenExpiry",
-  );
-  // cokkies have options
+  // Cookie options
   const options = {
-    httpOnly: true, //JS on the frontend CANNOT read this cookie
-    secure: true, // only manipulated by the browser
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // ❗ use HTTPS only in prod
   };
 
   return res
@@ -135,13 +143,9 @@ const login = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        {
-          user: loggedInUser,
-          accessToken,
-          refreshToken,
-        },
-        "User logged in successfully",
-      ),
+        { user: loggedInUser, accessToken, refreshToken },
+        "User logged in successfully"
+      )
     );
 });
 
@@ -238,9 +242,9 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
   }
 
   // if u r not verified then u have to repear whole process again, gen token and all
-  const { unHashedToken, HashedToken, tokenExpiry } =
+  const { unHashedToken, hashedToken, tokenExpiry } =
     user.generateTemporaryToken();
-  user.emailVerificationToken = HashedToken;
+  user.emailVerificationToken = hashedToken;
   user.emailVerificationTokenExpiry = tokenExpiry;
   user.save({ validateBeforeSave: false });
 
@@ -382,12 +386,16 @@ const changeCurrentPassword = asyncHandler(async(req,res)=>{
   const{ oldPassword, newPassword} = req.body
   const user = await User.findById(req.user?._id)
 
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
   // check whether is your old password is correct or not
-  const isPasswordValid = await user.isPasswordCorrect(oldPassword,newPassword)
+  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
   if(!isPasswordValid){
     throw new ApiError(400, "Invalid old password")
   }
-  user.password = password
+  user.password = newPassword;
   await user.save({validateBeforeSave:false})
   return res
     .status(200)

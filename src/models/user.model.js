@@ -121,12 +121,16 @@ userSchema.methods.generateRefreshToken = function () {
 
 userSchema.methods.generateTemporaryToken = function () {
   const unHashedToken = crypto.randomBytes(20).toString("hex");
-  const HashedToken = crypto
-    .createHash("sha256") // that is nothing but an algo
+
+  const hashedToken = crypto
+    .createHash("sha256")
     .update(unHashedToken)
     .digest("hex");
 
-  const tokenExpiry = Date.now() + 20 * 60 * 1000; // 20 min
-  return { unHashedToken, HashedToken, tokenExpiry };
+  // store as Date, not number
+  const tokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
+
+  return { unHashedToken, hashedToken, tokenExpiry };
 };
+
 export const User = mongoose.model("User", userSchema);

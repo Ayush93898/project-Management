@@ -1,15 +1,17 @@
 // i writr val for registration only
 import { body } from "express-validator"; // as mostly data body se aare hai
 // step -2 validation
+
 // for registration
 const userRegisterValidator = () => {
   return [
     body("email")
       .trim()
       .notEmpty()
-      .withMessage("Email is required") // agr empty hua (i.e !notEmpty) toh ye peice of code run hoga
+      .withMessage("Email is required")
       .isEmail()
       .withMessage("Email is invalid"),
+
     body("username")
       .trim()
       .notEmpty()
@@ -17,14 +19,15 @@ const userRegisterValidator = () => {
       .isLowercase()
       .withMessage("Username must be in lowercase")
       .isLength({ min: 3 })
-      .withMessage("Username must be atleat must be 3 characters long"),
-    body("password").trim().isEmpty().withMessage("Password is required"),
+      .withMessage("Username must be at least 3 characters long"),
+
+    body("password").trim().notEmpty().withMessage("Password is required"),
+
     body("fullName")
+      .optional() // Optional full name (but if present, must not be empty):
       .trim()
       .notEmpty()
-      .withMessage("fullName is requierd")
-      .optional()
-      .trim(),
+      .withMessage("Full name cannot be empty"),
   ];
 };
 
@@ -40,9 +43,10 @@ const userLoginValidator = () => {
 const userChangeCurrentPasswordValidator = () => {
   return [
     body("oldPassword").notEmpty().withMessage("Old password is required"),
-    body("newPasswod").notEmpty().withMessage("Old password is required"),
+    body("newPassword").notEmpty().withMessage("New password is required"),
   ];
 };
+
 
 // user forgot password validator
 const userForgotPasswordValidator = () => {

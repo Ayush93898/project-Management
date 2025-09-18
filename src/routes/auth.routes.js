@@ -22,13 +22,14 @@ import { getCurrentUser } from "../controllers/auth.controller.js";
 import { changeCurrentPassword } from "../controllers/auth.controller.js";
 import { resendEmailVerification } from "../controllers/auth.controller.js";
 
+
 const router = Router();
 // s-3 routes so req goes to /regsiter to the mtd registerUser.. toh iske beech me khi insert karna hoga
 // i.e userRegisterValidator se jo errors aaygi, wo validator catch karega.. . technically validate is pure middleware
 // unsecure routes
 router.route("/register").post(userRegisterValidator(), validate, registerUser); // /api/v1/auth/register
 router.route("/login").post(userLoginValidator(), login); // /api/v1/auth/login
-router.route("/verify-email/:verificationToken").get(verifyEmail); // /api/v1/auth/verify-email
+router.route("/verify-email/:verificationToken").get(verifyEmail); // /api/v1/auth/verify-email/token
 router.route("/refresh-token").post(refreshAccessToken); // /api/v1/auth/refresh-token
 router
   .route("/forgot-password")
